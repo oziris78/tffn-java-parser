@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-
 package com.twistral.tffn;
 
-public class HelloWorld {
 
-    public static void main(String[] args) {
-        System.out.println("Hello waghahorld!");
+class TFFNException extends RuntimeException {
+
+    public TFFNException(String message) {
+        super(message);
     }
+
 }
+
+
