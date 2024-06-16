@@ -16,26 +16,40 @@
 package com.twistral.tffn;
 
 
+import static com.twistral.tffn.TFFNException.*;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
 
 class Steps {
 
-    private final HashMap<Integer, Supplier<String>> dynamicParts = new HashMap<>(32);
-    private final HashMap<Integer, String> staticParts = new HashMap<>(32);
-    private final StringBuilder sb = new StringBuilder(32);
-    private int partCount = 0;
+    // Actual objects used by the class
+    private final HashMap<Integer, Supplier<String>> dynamicParts;
+    private final HashMap<Integer, String> staticParts;
+    private final StringBuilder sb;
+    private int partCount;
 
-    public Steps() {}
+    // Meaningless objects to speed up the class
+    private final StringBuilder temp = new StringBuilder(128);
+
+
+    Steps() {
+        this.dynamicParts = new HashMap<>(32);
+        this.staticParts = new HashMap<>(32);
+        this.sb = new StringBuilder(32);
+        this.partCount = 0;
+    }
+
 
     public void addStaticCharStep(char step) {
-        sb.append(step);
+        this.sb.append(step);
     }
 
+
     public void addStaticStringStep(String step) {
-        sb.append(step);
+        this.sb.append(step);
     }
+
 
     public void addDynamicStep(Supplier<String> step) {
         flushBuffer();
@@ -43,27 +57,23 @@ class Steps {
         partCount++;
     }
 
+
     public String process() {
-        StringBuilder result = new StringBuilder(64);
+        temp.setLength(0);
 
         for (int i = 0; i < partCount; i++) {
             if(staticParts.containsKey(i)) {
-                final String str = staticParts.get(i);
-                System.out.printf("%d S: '%s'\n", i, str);
-                result.append(str);
+                temp.append(staticParts.get(i));
             }
             else if(dynamicParts.containsKey(i)) {
-                final String str = dynamicParts.get(i).get();
-                System.out.printf("%d D: '%s'\n", i, str);
-                result.append(str);
+                temp.append(dynamicParts.get(i).get());
             }
-            else {
-                throw new TFFNException(String.format("A step with %d integer ID does not exist.", i));
-            }
+            else throw new TFFNUnreachableException();
         }
 
-        return result.toString();
+        return temp.toString();
     }
+
 
     public void flushBuffer() {
         if(sb.length() > 0) {
@@ -73,5 +83,6 @@ class Steps {
             sb.setLength(0);
         }
     }
+
 
 }

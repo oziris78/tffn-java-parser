@@ -17,14 +17,14 @@ package com.twistral.tffn;
 
 import java.util.HashMap;
 import java.util.function.Supplier;
+import static com.twistral.tffn.TFFNException.*;
+
 
 public class TFFNParser {
 
-    // Both maps are in shape { actionText : action }
-    private final HashMap<String, Supplier<String>> dynamicActions;
-    private final HashMap<String, String> staticActions;
-
-    private final HashMap<String, Steps> formatCache;
+    private final HashMap<String, Supplier<String>> dynamicActions;    // actionText -> action
+    private final HashMap<String, String> staticActions;               // actionText -> action
+    private final HashMap<String, Steps> formatCache;                  // format -> steps
 
 
     public TFFNParser() {
@@ -34,25 +34,22 @@ public class TFFNParser {
     }
 
 
-    public boolean defineDynamicAction(String actionText, Supplier<String> dynamicAction) {
+    public void defineDynamicAction(String actionText, Supplier<String> dynamicAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
-            return false;
+            throw new TFFNActionTextAlreadyExistsException(actionText);
         }
 
         dynamicActions.put(actionText, dynamicAction);
-        return true;
     }
 
 
-    public boolean defineStaticAction(String actionText, String staticAction) {
+    public void defineStaticAction(String actionText, String staticAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
-            return false;
+            throw new TFFNActionTextAlreadyExistsException(actionText);
         }
 
         staticActions.put(actionText, staticAction);
-        return true;
     }
-
 
 
     public String parse(String format) {
@@ -72,19 +69,14 @@ public class TFFNParser {
 
             switch (c) {
                 case '[': {
-                    if(inBrack) {
-                        throw new TFFNException("INVALID FORMAT: you forgot to close a bracket " +
-                            "or tried to nest brackets. Nesting brackets is prohibited in TFFN.");
-                    }
+                    if(inBrack) throw new TFFNNestingBracketsException();
 
                     inBrack = true;
                     i++;
                 } break;
 
                 case ']': {
-                    if(!inBrack) {
-                        throw new TFFNException("INVALID FORMAT: you forgot to open a bracket");
-                    }
+                    if(!inBrack) throw new TFFNDanglingCloseBracketException();
 
                     inBrack = false;
 
@@ -99,22 +91,14 @@ public class TFFNParser {
                         final Supplier<String> step = dynamicActions.get(brackContent);
                         steps.addDynamicStep(step);
                     }
-                    else {
-                        throw new TFFNException(
-                            String.format("INVALID FORMAT: '%s' action was never defined to the parser", brackContent)
-                        );
-                    }
+                    else throw new TFFNUndefinedActionException(brackContent);
 
                     i++;
                 } break;
 
                 case '!': {
-                    if(inBrack) {
-                        throw new TFFNException("INVALID FORMAT: '!' token cant be used inside brackets");
-                    }
-                    if(i == formatLen - 1) {
-                        throw new TFFNException("INVALID FORMAT: format string cant end with '!'");
-                    }
+                    if(inBrack) throw new TFFNIgnoreTokenInsideBracketException();
+                    if(i == formatLen - 1) throw new TFFNDanglingIgnoreTokenException();
 
                     final char nextChar = format.charAt(i + 1);
                     steps.addStaticCharStep(nextChar);
@@ -131,12 +115,13 @@ public class TFFNParser {
         }
 
         if(brackText.length() != 0) {
-            throw new TFFNException("INVALID FORMAT: you forgot to close a bracket");
+            throw new TFFNUnclosedBracketException();
         }
 
         steps.flushBuffer();
         this.formatCache.put(format, steps);
         return steps.process();
     }
+
 
 }

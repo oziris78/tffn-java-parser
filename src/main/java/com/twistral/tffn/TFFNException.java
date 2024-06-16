@@ -15,10 +15,63 @@
 package com.twistral.tffn;
 
 
+
 class TFFNException extends RuntimeException {
 
-    public TFFNException(String message) {
+    private TFFNException(String message) {
         super(message);
+    }
+
+    private TFFNException(String format, Object... args) {
+        super(String.format(format, args));
+    }
+
+    static class TFFNNestingBracketsException extends TFFNException {
+        public TFFNNestingBracketsException() {
+            super("INVALID FORMAT: nesting brackets are prohibited in TFFN");
+        }
+    }
+    
+    static class TFFNDanglingCloseBracketException extends TFFNException {
+        public TFFNDanglingCloseBracketException() {
+            super("INVALID FORMAT: you forgot to open a bracket");
+        }
+    }
+
+    static class TFFNUndefinedActionException extends TFFNException {
+        public TFFNUndefinedActionException(String actionText) {
+            super("INVALID FORMAT: '%s' action was never defined to the parser", actionText);
+        }
+    }
+
+    static class TFFNDanglingIgnoreTokenException extends TFFNException {
+        public TFFNDanglingIgnoreTokenException() {
+            super("INVALID FORMAT: format string cant end with '!'");
+        }
+    }
+
+    static class TFFNUnclosedBracketException extends TFFNException {
+        public TFFNUnclosedBracketException() {
+            super("INVALID FORMAT: you forgot to close a bracket");
+        }
+    }
+
+    static class TFFNUnreachableException extends TFFNException {
+        public TFFNUnreachableException() {
+            super("This line should have been UNREACHABLE!");
+        }
+    }
+
+    static class TFFNIgnoreTokenInsideBracketException extends TFFNException {
+        public TFFNIgnoreTokenInsideBracketException() {
+            super("INVALID FORMAT: '!' token cant be used inside brackets");
+        }
+    }
+
+    static class TFFNActionTextAlreadyExistsException extends TFFNException {
+        public TFFNActionTextAlreadyExistsException(String actionText) {
+            super("An action with '%s' name already exists!", actionText);
+        }
     }
 
 }
