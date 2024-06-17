@@ -32,15 +32,15 @@ public class TFFNTest {
 
         // Static
         parser = new TFFNParser();
-        parser.defineStaticAction("hello", "hello world");
-        parser.defineStaticAction("author", "oziris78");
+        parser.defineStaticAction("hello", "hello world")
+                .defineStaticAction("author", "oziris78");
         assertEquals(parser.parse("[hello] from [author]"), "hello world from oziris78");
 
         // Static & Dynamic
         parser = new TFFNParser();
-        parser.defineStaticAction("static", "Static Part");
-        parser.defineDynamicAction("dynamic", () -> "Dynamic Part");
-        parser.defineDynamicAction("greet", () -> "Hello, Dynamic World!");
+        parser.defineStaticAction("static", "Static Part")
+                .defineDynamicAction("dynamic", () -> "Dynamic Part")
+                .defineDynamicAction("greet", () -> "Hello, Dynamic World!");
         assertEquals("Static Part Dynamic Part", parser.parse("[static] [dynamic]"));
         assertEquals("Hello, Dynamic World!", parser.parse("[greet]"));
 

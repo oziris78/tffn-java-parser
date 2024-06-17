@@ -44,21 +44,23 @@ public class TFFNParser {
     private final StringBuilder sbRes = new StringBuilder(64); // for speed
 
 
-    public void defineDynamicAction(String actionText, Supplier<String> dynamicAction) {
+    public TFFNParser defineDynamicAction(String actionText, Supplier<String> dynamicAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
             throw new TFFNException(ACTION_TEXT_ALREADY_EXISTS, actionText);
         }
 
         dynamicActions.put(actionText, dynamicAction);
+        return this;
     }
 
 
-    public void defineStaticAction(String actionText, String staticAction) {
+    public TFFNParser defineStaticAction(String actionText, String staticAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
             throw new TFFNException(ACTION_TEXT_ALREADY_EXISTS, actionText);
         }
 
         staticActions.put(actionText, staticAction);
+        return this;
     }
 
 
