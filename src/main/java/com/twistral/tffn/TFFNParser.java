@@ -16,6 +16,7 @@ package com.twistral.tffn;
 
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.function.Supplier;
 import static com.twistral.tffn.TFFNException.*;
 
@@ -24,19 +25,28 @@ public class TFFNParser {
 
     private final HashMap<String, Supplier<String>> dynamicActions;    // actionText -> action
     private final HashMap<String, String> staticActions;               // actionText -> action
-    private final HashMap<String, Steps> formatCache;                  // format -> steps
+    private final HashMap<String, LinkedList<Step>> formatCache;       // format -> steps
 
 
     public TFFNParser() {
-        dynamicActions = new HashMap<>(64);
-        staticActions = new HashMap<>(64);
-        formatCache = new HashMap<>(512);
+        this.dynamicActions = new HashMap<>(64);
+        this.staticActions = new HashMap<>(64);
+        this.formatCache = new HashMap<>(64);
     }
+
+
+
+
+    /////////////////////////////////////////////////////////////////////
+    /////////////////////////////  METHODS  /////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+
+    private final StringBuilder sbRes = new StringBuilder(64); // for speed
 
 
     public void defineDynamicAction(String actionText, Supplier<String> dynamicAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
-            throw new TFFNActionTextAlreadyExistsException(actionText);
+            throw new TFFNException(ACTION_TEXT_ALREADY_EXISTS, actionText);
         }
 
         dynamicActions.put(actionText, dynamicAction);
@@ -45,7 +55,7 @@ public class TFFNParser {
 
     public void defineStaticAction(String actionText, String staticAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
-            throw new TFFNActionTextAlreadyExistsException(actionText);
+            throw new TFFNException(ACTION_TEXT_ALREADY_EXISTS, actionText);
         }
 
         staticActions.put(actionText, staticAction);
@@ -53,12 +63,24 @@ public class TFFNParser {
 
 
     public String parse(String format) {
-        // Check the cache
-        final Steps cachedSteps = this.formatCache.get(format);
-        if(cachedSteps != null) return cachedSteps.process();
+        LinkedList<Step> steps = formatCache.containsKey(format) ? formatCache.get(format) : parseSteps(format);
 
-        // Doesnt exist in the cache, parse it
-        Steps steps = new Steps();
+        sbRes.setLength(0);
+        steps.forEach(step -> sbRes.append(step.get()));
+        return sbRes.toString();
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////  HELPER FUNCTIONS  /////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+
+    private final StringBuilder sbPart = new StringBuilder(64); // for speed
+
+    private LinkedList<Step> parseSteps(String format) {
+        sbPart.setLength(0);
+
+        final LinkedList<Step> steps = new LinkedList<>();
         final int formatLen = format.length();
         StringBuilder brackText = new StringBuilder(formatLen);
         boolean inBrack = false;
@@ -69,14 +91,14 @@ public class TFFNParser {
 
             switch (c) {
                 case '[': {
-                    if(inBrack) throw new TFFNNestingBracketsException();
+                    if(inBrack) throw new TFFNException(NESTING_BRACKETS);
 
                     inBrack = true;
                     i++;
                 } break;
 
                 case ']': {
-                    if(!inBrack) throw new TFFNDanglingCloseBracketException();
+                    if(!inBrack) throw new TFFNException(DANGLING_CLOSE_BRACKET);
 
                     inBrack = false;
 
@@ -85,42 +107,52 @@ public class TFFNParser {
 
                     if(staticActions.containsKey(brackContent)) {
                         final String step = staticActions.get(brackContent);
-                        steps.addStaticStringStep(step);
+                        sbPart.append(step);
                     }
                     else if(dynamicActions.containsKey(brackContent)) {
                         final Supplier<String> step = dynamicActions.get(brackContent);
-                        steps.addDynamicStep(step);
+                        if(sbPart.length() > 0) {
+                            steps.add(new Step(sbPart.toString()));
+                            sbPart.setLength(0);
+                        }
+                        steps.add(new Step(step));
                     }
-                    else throw new TFFNUndefinedActionException(brackContent);
+                    else throw new TFFNException(UNDEFINED_ACTION, brackContent);
 
                     i++;
                 } break;
 
                 case '!': {
-                    if(inBrack) throw new TFFNIgnoreTokenInsideBracketException();
-                    if(i == formatLen - 1) throw new TFFNDanglingIgnoreTokenException();
+                    if(inBrack) throw new TFFNException(IGNORE_TOKEN_INSIDE_BRACKET);
+                    if(i == formatLen - 1) throw new TFFNException(DANGLING_IGNORE_TOKEN);
 
                     final char nextChar = format.charAt(i + 1);
-                    steps.addStaticCharStep(nextChar);
+                    sbPart.append(nextChar);
                     i += 2;
                 } break;
 
                 default: {
                     if(inBrack) brackText.append(c);
-                    else steps.addStaticCharStep(c);
+                    else sbPart.append(c);
 
                     i++;
                 } break;
             }
         }
 
+        // The format string ended but bracketText isnt empty so the last bracket was never closed
         if(brackText.length() != 0) {
-            throw new TFFNUnclosedBracketException();
+            throw new TFFNException(UNCLOSED_BRACKET);
         }
 
-        steps.flushBuffer();
+        // Add the final static string part as a step
+        if(sbPart.length() > 0) {
+            steps.add(new Step(sbPart.toString()));
+            sbPart.setLength(0);
+        }
+
         this.formatCache.put(format, steps);
-        return steps.process();
+        return steps;
     }
 
 

@@ -15,65 +15,19 @@
 package com.twistral.tffn;
 
 
-
 class TFFNException extends RuntimeException {
 
-    private TFFNException(String message) {
-        super(message);
-    }
+    static final String DANGLING_CLOSE_BRACKET = "INVALID FORMAT: you forgot to open a bracket";
+    static final String NESTING_BRACKETS = "INVALID FORMAT: nesting brackets are prohibited in TFFN";
+    static final String DANGLING_IGNORE_TOKEN = "INVALID FORMAT: format string cant end with '!'";
+    static final String UNCLOSED_BRACKET = "INVALID FORMAT: you forgot to close a bracket";
+    static final String IGNORE_TOKEN_INSIDE_BRACKET = "INVALID FORMAT: '!' token cant be used inside brackets";
+    static final String UNDEFINED_ACTION = "INVALID FORMAT: '%s' action was never defined to the parser";
+    static final String ACTION_TEXT_ALREADY_EXISTS = "An action with '%s' name already exists!";
 
-    private TFFNException(String format, Object... args) {
-        super(String.format(format, args));
-    }
-
-    static class TFFNNestingBracketsException extends TFFNException {
-        public TFFNNestingBracketsException() {
-            super("INVALID FORMAT: nesting brackets are prohibited in TFFN");
-        }
-    }
-    
-    static class TFFNDanglingCloseBracketException extends TFFNException {
-        public TFFNDanglingCloseBracketException() {
-            super("INVALID FORMAT: you forgot to open a bracket");
-        }
-    }
-
-    static class TFFNUndefinedActionException extends TFFNException {
-        public TFFNUndefinedActionException(String actionText) {
-            super("INVALID FORMAT: '%s' action was never defined to the parser", actionText);
-        }
-    }
-
-    static class TFFNDanglingIgnoreTokenException extends TFFNException {
-        public TFFNDanglingIgnoreTokenException() {
-            super("INVALID FORMAT: format string cant end with '!'");
-        }
-    }
-
-    static class TFFNUnclosedBracketException extends TFFNException {
-        public TFFNUnclosedBracketException() {
-            super("INVALID FORMAT: you forgot to close a bracket");
-        }
-    }
-
-    static class TFFNUnreachableException extends TFFNException {
-        public TFFNUnreachableException() {
-            super("This line should have been UNREACHABLE!");
-        }
-    }
-
-    static class TFFNIgnoreTokenInsideBracketException extends TFFNException {
-        public TFFNIgnoreTokenInsideBracketException() {
-            super("INVALID FORMAT: '!' token cant be used inside brackets");
-        }
-    }
-
-    static class TFFNActionTextAlreadyExistsException extends TFFNException {
-        public TFFNActionTextAlreadyExistsException(String actionText) {
-            super("An action with '%s' name already exists!", actionText);
-        }
+    public TFFNException(String exceptionFormat, Object... args) {
+        super(String.format(exceptionFormat, args));
     }
 
 }
-
 
