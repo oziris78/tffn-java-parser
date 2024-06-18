@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 
 class Step {
 
-    final Supplier<String> dynamicStep;
-    final String staticStep;
+    final Supplier<String> dynamicStep; // function to run
+    final String staticStep; // already existing string to replace
 
     Step(Supplier<String> dynamicStep) {
         this.dynamicStep = dynamicStep;

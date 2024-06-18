@@ -35,8 +35,6 @@ public class TFFNParser {
     }
 
 
-
-
     /////////////////////////////////////////////////////////////////////
     /////////////////////////////  METHODS  /////////////////////////////
     /////////////////////////////////////////////////////////////////////
@@ -44,6 +42,12 @@ public class TFFNParser {
     private final StringBuilder sbRes = new StringBuilder(64); // for speed
 
 
+    /**
+     * Defines a dynamic action to the parser.
+     * @param actionText the text inside the brackets that will fire this action
+     * @param dynamicAction a function that will produce a string to replace the action
+     * @return this parser for method chaining
+     */
     public TFFNParser defineDynamicAction(String actionText, Supplier<String> dynamicAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
             throw new TFFNException(ACTION_TEXT_ALREADY_EXISTS, actionText);
@@ -54,6 +58,12 @@ public class TFFNParser {
     }
 
 
+    /**
+     * Defines a static action to the parser.
+     * @param actionText the text inside the brackets that will fire this action
+     * @param staticAction the string that will replace the action
+     * @return this parser for method chaining
+     */
     public TFFNParser defineStaticAction(String actionText, String staticAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
             throw new TFFNException(ACTION_TEXT_ALREADY_EXISTS, actionText);
@@ -64,6 +74,12 @@ public class TFFNParser {
     }
 
 
+    /**
+     * This function parses a TFFN formatted string and returns the produced string. <br>
+     * It replaces all the actions according to the actions that were previously defined to the parser.
+     * @param format any string in valid TFFN format
+     * @return the produced string
+     */
     public String parse(String format) {
         LinkedList<Step> steps = formatCache.containsKey(format) ? formatCache.get(format) : parseSteps(format);
 
