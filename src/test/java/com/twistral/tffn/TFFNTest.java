@@ -17,6 +17,8 @@
 package com.twistral.tffn;
 
 import org.junit.jupiter.api.*;
+
+import java.util.Random;
 import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,18 +41,17 @@ public class TFFNTest {
         // Static & Dynamic
         parser = new TFFNParser();
         parser.defineStaticAction("static", "Static Part")
-                .defineDynamicAction("dynamic", () -> "Dynamic Part")
-                .defineDynamicAction("greet", () -> "Hello, Dynamic World!");
+                .defineDynamicAction("dynamic", sb -> sb.append("Dynamic Part"))
+                .defineDynamicAction("greet", sb -> sb.append("Hello, Dynamic World!"));
         assertEquals("Static Part Dynamic Part", parser.parse("[static] [dynamic]"));
         assertEquals("Hello, Dynamic World!", parser.parse("[greet]"));
 
         // Complex Dynamic
         parser = new TFFNParser();
         num = 1;
-        parser.defineDynamicAction("num", () -> {
-            String str = String.format("Check out my counter: %d", num);
+        parser.defineDynamicAction("num", sb -> {
+            sb.append(String.format("Check out my counter: %d", num));
             num *= 2;
-            return str;
         });
         assertEquals("Hey! Check out my counter: 1", parser.parse("Hey!! [num]"));
         assertEquals("Hey! Check out my counter: 2", parser.parse("Hey!! [num]"));
@@ -62,7 +63,7 @@ public class TFFNTest {
         // Escaping
         parser = new TFFNParser();
         parser.defineStaticAction("test", "in brackets!");
-        parser.defineDynamicAction("this", () -> "this will be");
+        parser.defineDynamicAction("this", sb -> sb.append("this will be"));
         assertEquals("this will be [in brackets!]", parser.parse("[this] ![[test]!]"));
         assertEquals("wow!!!", parser.parse("wow!!!!!!"));
         assertEquals("!!!!", parser.parse("!!!!!!!!"));
@@ -70,10 +71,9 @@ public class TFFNTest {
         // Multiple Dynamic in one statement
         parser = new TFFNParser();
         num = 1;
-        parser.defineDynamicAction("inc", () -> {
-            String s = String.valueOf(num);
+        parser.defineDynamicAction("inc", sb -> {
+            sb.append(num);
             num++;
-            return s;
         });
         assertEquals("1 2 3", parser.parse("[inc] [inc] [inc]"));
 
@@ -126,8 +126,12 @@ public class TFFNTest {
         assertThrows(TFFNException.class, () -> parser.parse("[undefined]"));
 
         // ACTION_TEXT_ALREADY_EXISTS
-        assertThrows(TFFNException.class, () -> parser.defineStaticAction("nested", "Static duplicate"));
-        assertThrows(TFFNException.class, () -> parser.defineDynamicAction("nested", () -> "Dynamic duplicate"));
+        assertThrows(TFFNException.class,
+            () -> parser.defineStaticAction("nested", "Static duplicate")
+        );
+        assertThrows(TFFNException.class,
+            () -> parser.defineDynamicAction("nested", sb -> sb.append("Dynamic duplicate"))
+        );
     }
 
 
@@ -169,8 +173,8 @@ public class TFFNTest {
         final int ITER_COUNT = 1_000_000;
 
         for (int i = 0; i < ITER_COUNT; i++) { // dynamic0 => 0, dynamic1 => 1, ...
-            int finalI = i;
-            parser.defineDynamicAction("dynamic" + i, () -> String.valueOf(finalI));
+            int fi = i;
+            parser.defineDynamicAction("dynamic" + i, sb -> sb.append(fi));
         }
 
         StringBuilder formatBuilder = new StringBuilder(ITER_COUNT*6);

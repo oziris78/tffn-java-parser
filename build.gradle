@@ -9,7 +9,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group 'com.github.oziris78'
-version '1.0.0'
+version '2.0.0'
 
 targetCompatibility = 1.8
 sourceCompatibility = 1.8 // java 8

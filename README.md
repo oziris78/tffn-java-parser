@@ -15,18 +15,18 @@ TFFN is an extremely simple and flexible formatting language/syntax that only ha
 2. Action End Token - `]`
 3. Ignore Token - `!`
 
-In a TFFN format string, parts that will get replaced by another string are called "actions". Each action 
-starts with `[` and ends with `]`.
+In a TFFN format string, previously defined bracket texts are "actions". Each action starts 
+with `[` and ends with `]`.
 
 There are two types of actions:
 1. Static Actions: Always replaced with the same string.
-2. Dynamic Actions: Can be replaced with different strings each time.
+2. Dynamic Actions: Can be replaced with different strings each time or literally do any manipulation to the formatting process.
 
 You can use the ignore token `!` to escape `[` or `]`. This token can also escape itself. :)
 
 
 For example, if "hello" is a static action that expands to "Hello World!" and if "rand" is a dynamic action
-that expands to a random digit:
+that adds a random digit to the string:
 - format = `"[hello] Mr. [rand][rand][rand]"` can expand to `"Hello World! Mr. 216"`, `"Hello World! Mr. 937"`, ...
 - format = `"![[rand][rand]]!"` can expand to `"[12]"`, `"[36]"`, `"[99]"`, `"[27]"`, ...
 - format = `"[rand] Hello!!"` can expand to `"5 Hello!"`, `"6 Hello!"`, `"1 Hello!"`, `"0 Hello!"`, ...
@@ -37,11 +37,11 @@ that expands to a random digit:
 
 # Code Examples
 ```java
-public class Main {
+public class Demo {
     public static void main(String[] args) {
         TFFNParser parser = new TFFNParser();
         Random random = new Random();
-        
+
         // Define static action (same string each time)
         parser.defineStaticAction("h", "Hello");
 
@@ -49,19 +49,23 @@ public class Main {
         //    different string each time, notice that its just a Supplier<String>
         //    meaning you can do literally anything in that function as long as
         //    you return a string. Very flexible isnt it?
-        parser.defineDynamicAction("hex", () -> { 
-            final int randIndex = random.nextInt(16);
-            return String.valueOf("0123456789ABCDEF".charAt(randIndex));
+        parser.defineDynamicAction("hex", sb -> {
+            final String alphabet = "0123456789ABCDEF";
+            sb.append(alphabet.charAt(random.nextInt(alphabet.length())));
         });
-        parser.defineDynamicAction("bin", () -> String.valueOf("01".charAt(random.nextInt(2))));
-        parser.defineDynamicAction("letter", () -> {
-            final int randIndex = random.nextInt(21);
-            return String.valueOf("BCDFGHJKLMNPQRSTVWXYZ".charAt(randIndex));
+        parser.defineDynamicAction("bin", sb -> {
+            final String alphabet = "01";
+            sb.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        });
+        parser.defineDynamicAction("letter", sb -> {
+            final String alphabet = "BCDFGHJKLMNPQRSTVWXYZ";
+            sb.append(alphabet.charAt(random.nextInt(alphabet.length())));
         });
 
         for (int i = 0; i < 10; i++) {
             String message = parser.parse("[h], [bin][bin]-[hex][hex][hex]-[letter][letter]!!");
-            System.out.println(message); // Hello, 01-270-CH!, Hello, 10-A5E-NF!, ...
+            // Prints "Hello, 01-2F0-BL!", "Hello, 10-D80-BM!", "Hello, 01-84A-XZ!", ... 
+            System.out.println(message);
         }
     }
 }

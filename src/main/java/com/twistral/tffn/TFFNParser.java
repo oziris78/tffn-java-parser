@@ -17,15 +17,16 @@ package com.twistral.tffn;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import static com.twistral.tffn.TFFNException.*;
 
 
 public class TFFNParser {
 
-    private final HashMap<String, Supplier<String>> dynamicActions;    // actionText -> action
-    private final HashMap<String, String> staticActions;               // actionText -> action
-    private final HashMap<String, LinkedList<Step>> formatCache;       // format -> steps
+    private final HashMap<String, Consumer<StringBuilder>> dynamicActions;    // actionText -> action
+    private final HashMap<String, String> staticActions;                      // actionText -> action
+    private final HashMap<String, LinkedList<Step>> formatCache;              // format -> steps
 
 
     public TFFNParser() {
@@ -45,10 +46,10 @@ public class TFFNParser {
     /**
      * Defines a dynamic action to the parser.
      * @param actionText the text inside the brackets that will fire this action
-     * @param dynamicAction a function that will produce a string to replace the action
+     * @param dynamicAction a function that will manipulate the inner StringBuilder of this parser
      * @return this parser for method chaining
      */
-    public TFFNParser defineDynamicAction(String actionText, Supplier<String> dynamicAction) {
+    public TFFNParser defineDynamicAction(String actionText, Consumer<StringBuilder> dynamicAction) {
         if(staticActions.containsKey(actionText) || dynamicActions.containsKey(actionText)) {
             throw new TFFNException(ACTION_TEXT_ALREADY_EXISTS, actionText);
         }
@@ -84,7 +85,14 @@ public class TFFNParser {
         LinkedList<Step> steps = formatCache.containsKey(format) ? formatCache.get(format) : parseSteps(format);
 
         sbRes.setLength(0);
-        steps.forEach(step -> sbRes.append(step.get()));
+        steps.forEach(step -> {
+            if(step.dynamicStep != null) {
+                step.dynamicStep.accept(sbRes);
+            }
+            else {
+                sbRes.append(step.staticStep);
+            }
+        });
         return sbRes.toString();
     }
 
@@ -128,7 +136,7 @@ public class TFFNParser {
                         sbPart.append(step);
                     }
                     else if(dynamicActions.containsKey(brackContent)) {
-                        final Supplier<String> step = dynamicActions.get(brackContent);
+                        final Consumer<StringBuilder> step = dynamicActions.get(brackContent);
                         if(sbPart.length() > 0) {
                             steps.add(new Step(sbPart.toString()));
                             sbPart.setLength(0);

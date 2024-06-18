@@ -16,15 +16,15 @@
 package com.twistral.tffn;
 
 
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 
 class Step {
 
-    final Supplier<String> dynamicStep; // function to run
+    final Consumer<StringBuilder> dynamicStep; // function to run
     final String staticStep; // already existing string to replace
 
-    Step(Supplier<String> dynamicStep) {
+    Step(Consumer<StringBuilder> dynamicStep) {
         this.dynamicStep = dynamicStep;
         this.staticStep = null;
     }
@@ -32,10 +32,6 @@ class Step {
     Step(String staticStep) {
         this.staticStep = staticStep;
         this.dynamicStep = null;
-    }
-
-    String get() {
-        return (dynamicStep != null) ? dynamicStep.get() : staticStep;
     }
 
 }
