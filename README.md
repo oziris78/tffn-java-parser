@@ -5,6 +5,7 @@
 
 <b>A Java library for parsing format strings written in TFFN syntax.</b>
 
+<br>
 
 
 # TFFN Syntax
@@ -31,9 +32,10 @@ that expands to a random digit:
 - format = `"[rand] Hello!!"` can expand to `"5 Hello!"`, `"6 Hello!"`, `"1 Hello!"`, `"0 Hello!"`, ...
 - format = `"[hello]!!"` will always expand to `"Hello World!!"` because it has no dynamic actions
 
+<br>
 
 
-# Examples
+# Code Examples
 ```java
 public class Main {
     public static void main(String[] args) {
@@ -65,6 +67,9 @@ public class Main {
 }
 ```
 
+For more examples that a look at <a href="https://github.com/oziris78/tffn-java-parser/blob/main/src/test/java/com/twistral/tffn/TFFNTest.java">here</a>.
+
+<br>
 
 
 # Downloading
@@ -84,11 +89,7 @@ dependencies {
 }
 ```
 
-
-# Licensing
-
-This library is licensed under the terms of the Apache-2.0 license.
-
+<br>
 
 # TFFN Lore
 
@@ -102,10 +103,16 @@ combinations of a given format.
 So basically, TFFN is an improved version of this old formatting language, offering way more 
 flexibility and compatibility with any programming language or framework.
 
+<br>
+
+# Licensing
+
+<a href="https://github.com/oziris78/tffn-java-parser">This library</a> is licensed under the terms of the Apache-2.0 license.
+
+<br>
+
 
 # Other TFFN Libraries
-
-Here's a list of TFFN libraries that I or other people created:
 
 | Programming Language |                                Library Name                                 |        Author         |
 |:--------------------:|:---------------------------------------------------------------------------:|:---------------------:|
