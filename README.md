@@ -121,4 +121,5 @@ flexibility and compatibility with any programming language or framework.
 | Programming Language |                                Library Name                                 |        Author         |
 |:--------------------:|:---------------------------------------------------------------------------:|:---------------------:|
 |         Java         | <a href="https://github.com/oziris78/tffn-java-parser">tffn-java-parser</a> |  Oğuzhan Topaloğlu   |
+|          C           |    <a href="https://github.com/oziris78/tffn-c-parser">tffn-c-parser</a>    |  Oğuzhan Topaloğlu   |
 
